@@ -1,32 +1,22 @@
 package com.iadel.joke.clients
 
-
+import com.iadel.joke.exceptions.AiServiceException
+import com.iadel.joke.exceptions.QuotaExceededException
+import com.iadel.joke.exceptions.UnauthorizedException
 import com.iadel.joke.models.Content
 import com.iadel.joke.models.GeminiRequest
 import com.iadel.joke.models.GeminiResponse
 import com.iadel.joke.models.Part
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.network.sockets.ConnectTimeoutException
-import io.ktor.client.network.sockets.SocketTimeoutException
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.plugins.HttpTimeout
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
+import io.ktor.client.network.sockets.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
-
-/**
- * Custom exception types to classify Gemini failures without leaking details.
- */
-class GeminiUnauthorizedException : Exception()
-class GeminiQuotaExceededException : Exception()
-class GeminiServiceUnavailableException : Exception()
 
 class GeminiClient {
 
@@ -64,18 +54,23 @@ class GeminiClient {
                         ?: throw Exception("Empty response from Gemini")
                 }
 
-                HttpStatusCode.Unauthorized -> throw GeminiUnauthorizedException()
-                HttpStatusCode.Forbidden -> throw GeminiUnauthorizedException()
-                HttpStatusCode.TooManyRequests -> throw GeminiQuotaExceededException()
-                HttpStatusCode.ServiceUnavailable, HttpStatusCode.GatewayTimeout -> throw GeminiServiceUnavailableException()
+                HttpStatusCode.Unauthorized, HttpStatusCode.Forbidden -> 
+                    throw UnauthorizedException()
+                
+                HttpStatusCode.TooManyRequests -> 
+                    throw QuotaExceededException()
+                
+                HttpStatusCode.ServiceUnavailable, HttpStatusCode.GatewayTimeout -> 
+                    throw AiServiceException()
+                
                 else -> throw Exception("Unexpected API status: ${httpResponse.status}")
             }
         } catch (e: HttpRequestTimeoutException) {
-            throw GeminiServiceUnavailableException()
+            throw AiServiceException()
         } catch (e: ConnectTimeoutException) {
-            throw GeminiServiceUnavailableException()
+            throw AiServiceException()
         } catch (e: SocketTimeoutException) {
-            throw GeminiServiceUnavailableException()
+            throw AiServiceException()
         }
     }
 }
