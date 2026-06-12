@@ -5,7 +5,7 @@ WORKDIR /home/gradle/src
 RUN ./gradlew buildFatJar --no-daemon
 
 # 2. Run Stage
-FROM openjdk:21-slim
+FROM eclipse-temurin:21-jre
 EXPOSE 8080
 RUN mkdir /app
 COPY --from=build /home/gradle/src/build/libs/*.jar /app/joke-ktor.jar
