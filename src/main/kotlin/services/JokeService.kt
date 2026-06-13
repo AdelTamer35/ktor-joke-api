@@ -17,6 +17,12 @@ class JokeService(
             return JokeResult.Failure(JokeError.MissingParameter)
         }
 
+        // Check if there is more than one word
+        val trimmedWord = word.trim()
+        if (trimmedWord.contains(" ") || trimmedWord.contains("\t")) {
+            return JokeResult.Failure(JokeError.MultipleWords)
+        }
+
         return try {
             val prompt = promptBuilder.buildEgyptianJokePrompt(word)
             val joke = aiClient.generateContent(prompt)

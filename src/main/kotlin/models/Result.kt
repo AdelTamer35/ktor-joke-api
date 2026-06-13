@@ -16,6 +16,11 @@ sealed class JokeError(
         "Please provide a 'word' query parameter."
     )
 
+    object MultipleWords : JokeError(
+        HttpStatusCode.BadRequest,
+        "Please provide only ONE word. Multiple words are not allowed."
+    )
+
     object Unauthorized : JokeError(
         HttpStatusCode.Unauthorized,
         "AI Service authentication failed. Please check configuration."
